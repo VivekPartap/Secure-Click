@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Secure-Click (Local)",
+  "version": "0.1",
+  "description": "Local Secure-Click extension - queries local backend to detect phishing URLs.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "notifications",
+    "webRequest",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Secure-Click"
+  }
+}

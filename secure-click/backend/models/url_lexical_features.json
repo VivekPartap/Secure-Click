@@ -1,0 +1,15 @@
+[
+  "length_url",
+  "qty_dot_url",
+  "qty_hyphen_url",
+  "qty_underline_url",
+  "qty_slash_url",
+  "qty_questionmark_url",
+  "qty_equal_url",
+  "qty_at_url",
+  "qty_and_url",
+  "qty_exclamation_url",
+  "qty_space_url",
+  "qty_tld_url",
+  "email_in_url"
+]

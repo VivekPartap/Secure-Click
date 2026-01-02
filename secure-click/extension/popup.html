@@ -1,0 +1,59 @@
+<!-- extension/popup.html -->
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Secure-Click</title>
+  <style>
+    body { font-family: Arial, sans-serif; min-width: 280px; padding: 10px; }
+    .safe { color: green; }
+    .mal { color: red; font-weight: bold; }
+    .row { margin: 8px 0; }
+    .muted { color: #666; font-size: 12px; }
+    button { padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <h3>Secure-Click</h3>
+  <div id="status">Loading...</div>
+  <div id="details" style="display:none;">
+    <div class="row"><b>URL:</b> <span id="url"></span></div>
+    <div class="row"><b>Seems to be:</b> <span id="verdict"></span></div>
+    <div class="row"><b>Score:</b> <span id="score"></span></div>
+    <div class="row"><b>Reason:</b> <span id="reason"></span></div>
+  </div>
+  <div id="controls" style="margin-top: 10px; display:none;">
+    <button id="openDashboard">Open Dashboard</button>
+  </div>
+
+  <hr style="margin: 10px 0;" />
+
+  <div id="settings">
+    <div class="row"><b>Protection settings</b></div>
+    <div class="row">
+      <label>
+        <input type="checkbox" id="useSafeBrowsing" checked />
+        Use Google Safe Browsing
+      </label>
+    </div>
+    <div class="row">
+      <label>
+        <input type="checkbox" id="useVirusTotal" checked />
+        Use VirusTotal
+      </label>
+    </div>
+    <div class="row">
+      <label>
+        Aggressiveness:
+        <select id="aggressiveness">
+          <option value="balanced">Balanced</option>
+          <option value="strict">Strict (warn/block earlier)</option>
+          <option value="relaxed">Relaxed (warn/block later)</option>
+        </select>
+      </label>
+    </div>
+    <div class="row muted" id="telemetryRow" style="display:none;"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

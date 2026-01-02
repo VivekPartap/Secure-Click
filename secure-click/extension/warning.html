@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureClick - Suspicious Site Warning</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    .container {
+      background:#fff;
+      border-radius:14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      width:100%;
+      max-width:720px;
+      padding:28px;
+    }
+    .icon {
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:#f59e0b;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:36px;
+      margin: 0 auto 12px;
+    }
+    h1 { font-size:22px; color:#111827; text-align:center; margin-bottom:6px; }
+    .subtitle { color:#6b7280; text-align:center; font-size:14px; margin-bottom:18px; }
+    .url-box {
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+      border-radius:8px;
+      padding:12px 14px;
+      font-family: 'Courier New', monospace;
+      font-size:13px;
+      color:#111827;
+      word-break:break-all;
+      margin-bottom:18px;
+    }
+    .grid {
+      display:grid;
+      grid-template-columns: 1fr 240px;
+      gap:16px;
+      align-items:start;
+    }
+    .left { min-width:0; }
+    .right {
+      background:#fff7ed;
+      border:1px solid #fcd34d;
+      border-radius:8px;
+      padding:12px;
+    }
+    .confidence-meter { margin:10px 0 8px; }
+    .meter-label { font-size:13px; color:#6b7280; margin-bottom:8px; }
+    .meter-bar {
+      width:100%; height:26px; background:#e5e7eb; border-radius:14px; overflow:hidden; position:relative;
+    }
+    .meter-fill { height:100%; width:0%; border-radius:14px; transition: width .35s ease, background .35s ease; }
+    .meter-value { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-weight:600; font-size:13px; color:#111827; }
+    .details { background:#fff; border-radius:8px; padding:10px; margin-top:10px; font-size:13px; color:#374151; }
+    .details h3 { font-size:14px; color:#92400e; margin-bottom:8px; }
+    .details ul { margin-left:18px; color:#543a0a; line-height:1.6; }
+    .ml-breakdown { font-size:13px; color:#374151; margin-top:8px; }
+    .ml-breakdown div { margin-bottom:6px; }
+    .buttons { margin-top:16px; display:flex; gap:10px; flex-direction:column; }
+    .btn {
+      padding:12px 16px; border-radius:8px; border:0; font-weight:700; font-size:14px; cursor:pointer;
+    }
+    .btn-back { background:#3b82f6; color:white; }
+    .btn-proceed { background:#f59e0b; color:white; }
+    .meta { font-size:12px; color:#6b7280; margin-top:8px; }
+    @media (max-width:840px) {
+      .grid { grid-template-columns: 1fr; }
+      .right { order: 2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-labelledby="title">
+    <div class="icon" aria-hidden="true">⚠️</div>
+    <h1 id="title">Suspicious Site Detected</h1>
+    <p class="subtitle">SecureClick detected suspicious characteristics on this page. Proceed with caution.</p>
+
+    <div class="url-box" id="warningUrl" aria-live="polite">Loading...</div>
+
+    <div class="grid" role="region" aria-label="Risk and details">
+      <div class="left">
+        <div class="confidence-meter" aria-hidden="false">
+          <div class="meter-label" id="meterLabel">Risk level</div>
+          <div class="meter-bar" aria-hidden="true">
+            <div id="meterFill" class="meter-fill" style="background:linear-gradient(90deg,#10b981 0%, #f59e0b 50%, #ef4444 100%); width:0%;"></div>
+            <div id="meterValue" class="meter-value">0%</div>
+          </div>
+        </div>
+
+        <div class="details" id="details">
+          <h3>Why is this site suspicious?</h3>
+          <ul id="reasons" aria-live="polite"></ul>
+
+          <div class="ml-breakdown" id="mlBreakdown" aria-live="polite">
+            <!-- ML breakdown inserted here -->
+          </div>
+        </div>
+      </div>
+
+      <aside class="right" aria-label="Actions and context">
+        <div style="font-weight:700; margin-bottom:8px;">Recommended action</div>
+        <div style="margin-bottom:10px;">We recommend going back to safety. You can still proceed, but it may expose you to phishing or malware.</div>
+
+        <div class="buttons" role="group" aria-label="Actions">
+          <button class="btn btn-back" id="btnBack">Go Back</button>
+          <button class="btn btn-proceed" id="btnProceed">Proceed Anyway</button>
+        </div>
+
+        <div class="meta" id="metaInfo"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Utility: safe text insertion (prevents basic HTML injection)
+    function setText(el, text) {
+      if (!el) return;
+      el.textContent = String(text === null || typeof text === 'undefined' ? '' : text);
+    }
+
+    // Parse query parameters safely
+    const params = new URLSearchParams(window.location.search);
+    const rawUrl = params.get('url') || '';
+    const url = decodeURIComponent(rawUrl || '');
+    const score = parseFloat(params.get('score') ?? params.get('ml_score_ensemble') ?? params.get('ml_score') ?? '0') || 0;
+    const heuristics = parseFloat(params.get('heuristics_score') || '0') || 0;
+    // Current ensemble model components (bagging/adaboost/gradboost)
+    const ml_bag = parseFloat(params.get('ml_score_bag') || 'NaN');
+    const ml_ada = parseFloat(params.get('ml_score_ada') || 'NaN');
+    const ml_gb = parseFloat(params.get('ml_score_gb') || 'NaN');
+    const reason_raw = params.get('reason') || params.get('reasons') || '';
+    const reason = decodeURIComponent(reason_raw || '');
+    const google_safe = params.get('google_safe') === '1' || params.get('google_safe') === 'true';
+    const vt_flag = params.get('virustotal_flag') === '1' || params.get('virustotal_flag') === 'true';
+    const vt_pos = parseInt(params.get('virustotal_positives') || '0') || 0;
+    const vt_total = parseInt(params.get('virustotal_total') || '0') || 0;
+
+    const warningUrlEl = document.getElementById('warningUrl');
+    const meterFill = document.getElementById('meterFill');
+    const meterValue = document.getElementById('meterValue');
+    const reasonsList = document.getElementById('reasons');
+    const mlBreakdown = document.getElementById('mlBreakdown');
+    const metaInfo = document.getElementById('metaInfo');
+
+    // Show sanitized URL
+    setText(warningUrlEl, url || 'Unknown URL');
+
+    // Configure meter
+    const percentage = Math.max(0, Math.min(100, Math.round(score * 100)));
+    meterFill.style.width = percentage + '%';
+    meterValue.textContent = percentage + '%';
+
+    // Color the meter based on score
+    if (score < 0.3) {
+      meterFill.style.background = 'linear-gradient(90deg,#10b981 0%,#34d399 100%)'; // green
+      document.getElementById('meterLabel').textContent = 'Low risk';
+    } else if (score < 0.7) {
+      meterFill.style.background = 'linear-gradient(90deg,#f59e0b 0%,#fbbf24 100%)'; // amber
+      document.getElementById('meterLabel').textContent = 'Moderate risk';
+    } else {
+      meterFill.style.background = 'linear-gradient(90deg,#ef4444 0%,#f87171 100%)'; // red
+      document.getElementById('meterLabel').textContent = 'High risk';
+    }
+
+    // Populate reasons list (split by semicolon or newline)
+    function pushReason(text) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      reasonsList.appendChild(li);
+    }
+
+    const parsedReasons = reason ? reason.split(/;|\r?\n/) .map(r => r.trim()).filter(Boolean) : [];
+
+    if (parsedReasons.length) {
+      parsedReasons.forEach(r => pushReason(r));
+    } else {
+      // fallback based on heuristics / flags
+      if (vt_flag && vt_pos > 0) {
+        pushReason(`Flagged by VirusTotal (${vt_pos}/${vt_total} engines)`);
+      }
+      if (google_safe) {
+        pushReason('Flagged by Google Safe Browsing');
+      }
+      if (heuristics && heuristics > 0.0) {
+        pushReason(`Heuristics score: ${(heuristics * 100).toFixed(1)}%`);
+      }
+      if (!parsedReasons.length && !vt_flag && !google_safe && !(heuristics > 0)) {
+        pushReason('Moderate risk indicators detected');
+      }
+    }
+
+    // ML breakdown display (only show if per-model scores are available)
+    const breakdownLines = [];
+    if (!Number.isNaN(ml_bag)) breakdownLines.push({label:'Bagging', v: ml_bag});
+    if (!Number.isNaN(ml_ada)) breakdownLines.push({label:'AdaBoost', v: ml_ada});
+    if (!Number.isNaN(ml_gb)) breakdownLines.push({label:'GradBoost', v: ml_gb});
+    if (breakdownLines.length) {
+      const title = document.createElement('div');
+      title.style.fontWeight = '700';
+      title.style.marginTop = '10px';
+      title.textContent = 'Machine learning breakdown';
+      mlBreakdown.appendChild(title);
+      breakdownLines.forEach(item => {
+        const div = document.createElement('div');
+        const val = (typeof item.v === 'number' && !Number.isNaN(item.v)) ? (item.v * 100).toFixed(2) + '%' : 'N/A';
+        div.textContent = `• ${item.label}: ${val}`;
+        mlBreakdown.appendChild(div);
+      });
+      // Ensemble / combined
+      const ens = document.createElement('div');
+      ens.style.fontWeight = '600';
+      ens.style.marginTop = '6px';
+      ens.textContent = `• Combined risk score: ${percentage}%`;
+      mlBreakdown.appendChild(ens);
+    }
+
+    // meta info (external flags)
+    const metaParts = [];
+    if (google_safe) metaParts.push('Google Safe Browsing: flagged');
+    if (vt_flag) metaParts.push(`VirusTotal: flagged (${vt_pos}/${vt_total})`);
+    if (!metaParts.length) metaParts.push('No external threat intelligence flags');
+    metaInfo.textContent = metaParts.join(' · ');
+
+    // Safe key generation for storage (avoid raw url in key)
+    function safeKeyForUrl(u) {
+      try {
+        return 'override_' + btoa(u).replace(/=+$/, '').replace(/\+/g,'-').replace(/\//g,'_');
+      } catch (e) {
+        return 'override_' + encodeURIComponent(u);
+      }
+    }
+
+    // Button handlers
+    const btnBack = document.getElementById('btnBack');
+    const btnProceed = document.getElementById('btnProceed');
+
+    btnBack.addEventListener('click', () => {
+      // prefer history back; if no history, open a safe page
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'about:blank';
+      }
+    });
+
+    btnProceed.addEventListener('click', () => {
+      const key = safeKeyForUrl(url || '');
+      // If chrome storage exists (running as extension page), save override then redirect
+      if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
+        try {
+          const obj = {};
+          obj[key] = true;
+          chrome.storage.local.set(obj, () => {
+            // ignore small errors
+            window.location.href = url || 'about:blank';
+          });
+        } catch (e) {
+          // fallback
+          window.location.href = url || 'about:blank';
+        }
+      } else {
+        // Not running inside extension (or in a regular browser). Do not store override; navigate.
+        window.location.href = url || 'about:blank';
+      }
+    });
+
+    // Improve accessibility: focus proceed button if high risk (so user sees action)
+    if (score >= 0.7) {
+      btnBack.focus();
+    }
+  </script>
+</body>
+</html>

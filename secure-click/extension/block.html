@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SecureClick - Phishing Site Blocked</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #fff; border-radius: 14px; max-width: 720px; width: 100%;
+      padding: 28px; box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+    }
+    .icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(180deg,#ef4444,#dc2626); color: white;
+      display:flex; align-items:center; justify-content:center; font-size:36px; margin:0 auto 18px;
+    }
+    h1 { text-align:center; color:#111827; font-size:22px; margin-bottom:6px; }
+    .subtitle { text-align:center; color:#6b7280; font-size:14px; margin-bottom:18px; line-height:1.5 }
+    .url-box {
+      background:#f3f4f6; border:1px solid #e5e7eb; padding:12px 14px; border-radius:8px;
+      font-family: "Courier New", monospace; font-size:13px; color:#111827; word-break: break-all;
+      margin-bottom:16px;
+    }
+
+    .score-row { display:flex; gap:16px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    .score-card {
+      flex:1; min-width:220px;
+      background:#f9fafb; border-radius:8px; padding:12px;
+      border:1px solid #eef2ff;
+    }
+    .score-value { font-weight:700; font-size:18px; color:#111827; }
+    .progress {
+      height:18px; background:#e5e7eb; border-radius:12px; overflow:hidden; position:relative; margin-top:10px;
+    }
+    .progress-bar {
+      height:100%; width:0%; transition: width .35s ease;
+      border-radius:12px;
+    }
+    .reason-box {
+      background:#fef2f2; border-left:4px solid #ef4444; padding:12px; border-radius:6px; color:#7f1d1d;
+      margin-bottom:12px;
+    }
+    .ml-breakdown {
+      background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #eef2ff; color:#111827;
+      font-size:13px;
+    }
+    .ml-row { display:flex; justify-content:space-between; margin-bottom:6px; align-items:center; gap:12px; }
+    .badge-safe { color:#065f46; background:#ecfdf5; padding:6px 8px; border-radius:8px; font-weight:600; font-size:13px; }
+    .badge-flag { color:#7f1d1d; background:#fee2e2; padding:6px 8px; border-radius:8px; font-weight:600; font-size:13px; }
+    .buttons { display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; justify-content:center; }
+    button { padding:12px 18px; border-radius:8px; border:none; font-weight:700; cursor:pointer; }
+    .btn-back { background:#3b82f6; color:white; }
+    .btn-proceed { background:#ef4444; color:white; }
+    .small { font-size:13px; color:#6b7280; margin-top:8px; text-align:center; }
+    ul { padding-left:18px; margin-top:6px; }
+    li { margin-bottom:6px; }
+    @media (max-width:560px){
+      .score-row{flex-direction:column}
+      .score-card{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-labelledby="blocked-title">
+    <div class="icon" aria-hidden="true">⚠️</div>
+    <h1 id="blocked-title">Phishing Site Blocked</h1>
+    <p class="subtitle">SecureClick has flagged the requested site as potentially malicious. We strongly recommend not proceeding.</p>
+
+    <div class="url-box" id="blockedUrl">Loading...</div>
+
+    <div class="score-row">
+      <div class="score-card" aria-live="polite">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div><strong>Combined risk score</strong></div>
+          <div id="combinedPct" class="score-value">--</div>
+        </div>
+        <div class="progress" aria-hidden="true">
+          <div id="progressBar" class="progress-bar" style=""></div>
+        </div>
+        <div class="small" id="severityText">Severity: --</div>
+      </div>
+
+      <div class="score-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div><strong>Heuristics</strong></div>
+          <div id="heuristicsPct" class="score-value">--</div>
+        </div>
+        <div class="small" id="heuristicsTxt">Rules triggered: --</div>
+      </div>
+    </div>
+
+    <div class="ml-breakdown" id="mlBreakdown" aria-live="polite">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong>Machine Learning breakdown</strong>
+        <span id="mlEnsemblePct" style="font-weight:700">--</span>
+      </div>
+      <div class="ml-row"><div>Bagging (bag):</div><div id="mlBag">--</div></div>
+      <div class="ml-row"><div>Boosting (AdaBoost / similar):</div><div id="mlAda">--</div></div>
+      <div class="ml-row"><div>Gradient Boosting:</div><div id="mlGB">--</div></div>
+    </div>
+
+    <div class="reason-box" id="detailsBox">
+      <strong>Why was this site blocked?</strong>
+      <ul id="reasons"> <li>Loading reasons...</li> </ul>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap;">
+      <div id="externalInfo" style="text-align:center; font-size:13px;"></div>
+    </div>
+
+    <div class="buttons" role="group" aria-label="actions">
+      <button class="btn-back" onclick="goBack()" aria-label="Go back to safety">Go back to safety</button>
+      <button class="btn-proceed" onclick="proceedAnyway()" aria-label="Proceed to site (not recommended)">Proceed anyway (not recommended)</button>
+    </div>
+
+    <div class="small" style="margin-top:14px;">Proceeding is at your own risk. You can override once per URL from this device.</div>
+  </div>
+
+  <script>
+    // Helper: safe parse float
+    function toFloat(v, fallback=0) {
+      const n = parseFloat(String(v));
+      return Number.isFinite(n) ? n : fallback;
+    }
+    function pct(n) { return (n*100).toFixed(1) + '%'; }
+    function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+    function safeKeyForUrl(url){ try { return encodeURIComponent(url).replace(/%/g,''); } catch(e){ return btoa(url||''); } }
+
+    // Read params
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get('url') || params.get('u') || 'Unknown URL';
+    const combined = clamp01(toFloat(params.get('score') || params.get('combined') || params.get('ml_score') || 0));
+    const heuristicsScore = clamp01(toFloat(params.get('heuristics_score') || params.get('heuristics') || 0));
+    const heuristicsText = params.get('reason') || params.get('heuristics_reason') || params.get('details') || '';
+    const mlBag = clamp01(toFloat(params.get('ml_score_bag') || params.get('bag') || 0));
+    const mlAda = clamp01(toFloat(params.get('ml_score_ada') || params.get('ada') || params.get('ml_score_ada') || 0));
+    const mlGB = clamp01(toFloat(params.get('ml_score_gb') || params.get('gb') || params.get('ml_score_gb') || 0));
+    const mlEnsemble = clamp01(toFloat(params.get('ml_score_ensemble') || params.get('ml_score') || 0));
+    const googleFlag = params.get('google_safe') || params.get('gsb') || params.get('google_flag') || null;
+    const virustotalFlag = params.get('virustotal_flag') || params.get('vt_flag') || null;
+    const vtPos = params.get('virustotal_positives') || params.get('vt_pos') || 0;
+    const vtTotal = params.get('virustotal_total') || params.get('vt_total') || 0;
+
+    // Fill UI
+    document.getElementById('blockedUrl').textContent = url;
+
+    // Progress bar color logic
+    const progressBar = document.getElementById('progressBar');
+    const combinedPctEl = document.getElementById('combinedPct');
+    const severityText = document.getElementById('severityText');
+
+    function setProgress(score){
+      combinedPctEl.textContent = pct(score);
+      progressBar.style.width = (score*100)+'%';
+      // choose gradient color by threshold
+      if (score < 0.30) {
+        progressBar.style.background = 'linear-gradient(90deg,#10b981,#34d399)'; // green
+        severityText.textContent = 'Severity: Low';
+      } else if (score < 0.70) {
+        progressBar.style.background = 'linear-gradient(90deg,#f59e0b,#fbbf24)'; // amber
+        severityText.textContent = 'Severity: Medium';
+      } else {
+        progressBar.style.background = 'linear-gradient(90deg,#ef4444,#f87171)'; // red
+        severityText.textContent = 'Severity: High';
+      }
+    }
+
+    setProgress(combined);
+
+    // Heuristics display
+    const heuristicsPctEl = document.getElementById('heuristicsPct');
+    const heuristicsTxtEl = document.getElementById('heuristicsTxt');
+    heuristicsPctEl.textContent = pct(heuristicsScore);
+    heuristicsTxtEl.textContent = heuristicsText ? heuristicsText : 'Automated rule evaluation';
+
+    // ML breakdown
+    document.getElementById('mlBag').textContent = pct(mlBag);
+    document.getElementById('mlAda').textContent = pct(mlAda);
+    document.getElementById('mlGB').textContent = pct(mlGB);
+    document.getElementById('mlEnsemblePct').textContent = pct(mlEnsemble);
+
+    // Reasons list (split by common separators)
+    const reasonsEl = document.getElementById('reasons');
+    reasonsEl.innerHTML = ''; // clear default
+    let reasonsArr = [];
+    if (heuristicsText) {
+      // try semicolon, pipe, or comma
+      reasonsArr = heuristicsText.split(/;|\|/).map(s => s.trim()).filter(Boolean);
+    }
+    if (reasonsArr.length === 0) reasonsArr = ['High risk indicators detected'];
+    reasonsArr.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = r;
+      reasonsEl.appendChild(li);
+    });
+
+    // External flags display
+    const externalInfo = document.getElementById('externalInfo');
+    const extParts = [];
+    if (googleFlag !== null) {
+      const flagged = (googleFlag === '1' || googleFlag === 'true' || googleFlag === 'True');
+      extParts.push(flagged ? '<span class="badge-flag">Google Safe Browsing: Flagged</span>' : '<span class="badge-safe">Google Safe Browsing: Not flagged</span>');
+    }
+    if (virustotalFlag !== null) {
+      const flagged = (virustotalFlag === '1' || virustotalFlag === 'true' || virustotalFlag === 'True');
+      if (flagged) {
+        extParts.push(`<span class="badge-flag">VirusTotal: Flagged (${vtPos || 0}/${vtTotal || 0})</span>`);
+      } else {
+        extParts.push('<span class="badge-safe">VirusTotal: Not flagged</span>');
+      }
+    }
+    if (extParts.length > 0) externalInfo.innerHTML = extParts.join(' &nbsp; ');
+
+    function goBack(){ window.history.back(); }
+
+    async function proceedAnyway(){
+      // remember override for this URL, once
+      const key = 'override_' + safeKeyForUrl(url);
+      const payload = { url, ts: Date.now() };
+      // prefer chrome.storage if available (extension context)
+      try {
+        if (window.chrome && chrome.storage && chrome.storage.local && chrome.storage.local.set) {
+          const obj = {}; obj[key] = payload;
+          chrome.storage.local.set(obj, () => {
+            // redirect after storing
+            window.location.href = url;
+          });
+        } else {
+          // fallback to localStorage
+          try {
+            localStorage.setItem(key, JSON.stringify(payload));
+          } catch (e) {
+            // ignore storage errors
+          }
+          window.location.href = url;
+        }
+      } catch (e) {
+        // ensure redirect even if storage fails
+        window.location.href = url;
+      }
+    }
+
+    // Accessibility: announce severity for screen readers
+    const sr = document.createElement('div');
+    sr.setAttribute('aria-live','polite');
+    sr.style.position = 'absolute'; sr.style.left = '-9999px';
+    sr.textContent = `Site blocked. Risk ${severityText.textContent}. Combined score ${combinedPctEl.textContent}.`;
+    document.body.appendChild(sr);
+  </script>
+</body>
+</html>

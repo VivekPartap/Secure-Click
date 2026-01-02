@@ -1,0 +1,38 @@
+{
+  "bagging": 0.2,
+  "adaboost": 0.2,
+  "gradboost": 0.6,
+  "ensemble": {
+    "weights": {
+      "bagging": 0.2,
+      "adaboost": 0.2,
+      "gradboost": 0.6
+    },
+    "metrics": {
+      "accuracy": 0.9653077158084117,
+      "precision": 0.9543138998948816,
+      "recall": 0.9627212660086467,
+      "auc": 0.9944301813380582
+    }
+  },
+  "individual_model_metrics": {
+    "bagging": {
+      "accuracy": 0.9483010285481517,
+      "precision": 0.9230102442868401,
+      "recall": 0.9554612937433722,
+      "auc": 0.9861250277442105
+    },
+    "adaboost": {
+      "accuracy": 0.9467395363046947,
+      "precision": 0.9294552466655954,
+      "recall": 0.9436332490415205,
+      "auc": 0.9881057699421592
+    },
+    "gradboost": {
+      "accuracy": 0.9694151193183747,
+      "precision": 0.9632892804698973,
+      "recall": 0.9632107023411371,
+      "auc": 0.9953254277351049
+    }
+  }
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Favicons & PWA manifest -->
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Viewport & theme -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta
+      name="description"
+      content="Secure-Click dashboard — real-time phishing detection overview"
+    />
+
+    <!-- Social / Open Graph -->
+    <meta property="og:title" content="Secure-Click Dashboard" />
+    <meta property="og:description" content="Real-time phishing detection dashboard and history viewer." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+
+    <!-- Preconnect and fonts (optional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Use system font by default; uncomment Google font line below if you prefer a web font -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" /> -->
+
+    <title>Secure-Click Dashboard</title>
+
+    <!-- Minimal CSP example (adjust for your build and inline scripts) -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:"> -->
+
+    <!-- Inline helper for accessibility: mark root as application for assistive tech -->
+    <script>
+      // This runs before React mounts so screen readers see the role early.
+      try {
+        (function() {
+          var root = document.getElementById('root');
+          if (root) root.setAttribute('role', 'application');
+        })();
+      } catch (e) {
+        /* ignore errors in older browsers */
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>
+      <strong>JavaScript is required to run the Secure-Click dashboard. Please enable JavaScript in your browser.</strong>
+    </noscript>
+
+    <!-- React mounts here -->
+    <div id="root" aria-live="polite"></div>
+
+    <!-- Analytics / optional scripts can be injected by your build -->
+  </body>
+</html>
