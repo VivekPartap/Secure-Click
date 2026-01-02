@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Secure-Click 🔒
 
 Secure-Click is a browser extension that automatically detects phishing and malicious URLs in real-time using machine learning. It provides a local backend API, a React dashboard for viewing scan history, and a Chrome extension that analyzes URLs as you browse.
@@ -541,3 +542,6 @@ For issues and questions:
 
 **Happy Secure Browsing! 🔒**
 
+=======
+# Secure-Click
+>>>>>>> 9e65c7f11549f1a7f0eea7fd0008ca980804a78b
